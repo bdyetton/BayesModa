@@ -63,7 +63,8 @@ def plot_marker(marker, y_to_plot_at, fat=False):
              color=color, linewidth=width[fat], linestyle=style)
     plt.title('25 second Epoch of Stage 2, C3')
     plt.xlabel('')
-    plt.xlim([0, max(25, y_to_plot_at)])
+    plt.ylim([0, max(25, y_to_plot_at)])
+    plt.xlim([0, 25])
     plt.xticks([])
     plt.ylabel('')
     plt.yticks([])
@@ -82,6 +83,7 @@ def plot_an_epoch(epoch_signal, predicted_markers, real_markers, rater_to_plot_a
 
     ax1 = fig.add_subplot(3, 1, 1)
     rater = 0
+    real_markers = real_markers.reset_index(drop=True)
     for marker_idxs, markers_slices in real_markers.groupby(['rater_i']):
         for idx, marker in markers_slices.iterrows():
             if marker_idxs == rater_to_plot_at_bottom:
@@ -93,14 +95,15 @@ def plot_an_epoch(epoch_signal, predicted_markers, real_markers, rater_to_plot_a
             plot_marker(marker, y_plot, fat=fat_line)
             if marker['theta'] == 1:
                 con = ConnectionPatch(xyA=((marker['s']+marker['e'])/2, y_plot),
-                                      xyB=((predicted_markers.loc[marker['w'], 's'] +
-                                            predicted_markers.loc[marker['w'], 'e'])/2, ax2.get_ylim()[1]),
+                                      xyB=((predicted_markers.loc[marker['w']-1, 's'] +
+                                            predicted_markers.loc[marker['w']-1, 'e'])/2, ax2.get_ylim()[1]),
                                       coordsA="data",
                                       coordsB="data",
                                       axesA=ax1,
                                       axesB=ax2,
                                       color="grey", alpha=0.3)
                 ax1.add_artist(con)
+                pass
             rater = rater + 1
 
     ax3 = fig.add_subplot(3, 1, 3)

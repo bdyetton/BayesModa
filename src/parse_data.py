@@ -17,8 +17,8 @@ def is_overlaping(start1: float, end1: float, start2: float, end2: float) -> flo
     return max(max((end2 - start1), 0) - max((end2 - end1), 0) - max((start2 - start1), 0), 0)
 
 
-def load_and_parse_for_modeling(marker_file):
-    markers, markers_og = load_markers(marker_file)
+def load_and_parse_for_modeling(marker_file, select_epochs = None):
+    markers, markers_og = load_markers(marker_file, select_epochs)
     unique_annots = markers['annotatorID'].unique()
     annot_map = {v: k for k, v in enumerate(unique_annots)}
     epoch_i_map = {v: k for k, v in enumerate(markers['epoch_i'].unique())}
@@ -30,14 +30,16 @@ def load_and_parse_for_modeling(marker_file):
     markers['marker_per_r_i'] = markers.groupby(['epoch_i', 'rater_i'])['Phase'].transform('count')
     markers['conf'] = markers['Conf'].map({'low':0.25, 'med':0.5, 'high':0.99})
     markers['epoch_rater_i'] = markers.groupby(['epoch_i', 'rater_i']).ngroup()
-    markers = markers.drop('Conf',axis=1).dropna()
+    markers = markers.drop('Conf', axis=1).dropna()
     markers['t'] = list(range(markers.shape[0]))
     return markers, annot_map, epoch_i_map
 
 
-def load_markers(marker_file):
+def load_markers(marker_file, select_epochs = None):
     markers_og = pd.read_csv(marker_file, delimiter='\t')
     markers_og = markers_og.dropna()
+    if select_epochs:
+        markers_og = markers_og.loc[markers_og['Epoch Num'].isin(select_epochs), :]
     markers = markers_og.loc[:, ['Phase', 'Global Marker Index', 'annotatorID', 'Conf']]
     markers['s'] = markers_og['MASS Marker Start Time (s)'] - markers_og['MASS Epoch Start Time (s)']
     markers['d'] = markers_og['MASS Marker End Time (s)'] - markers_og['MASS Marker Start Time (s)']
